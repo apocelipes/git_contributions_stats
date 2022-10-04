@@ -18,4 +18,12 @@ include_directories(${GIT2_INCLUDE_PATH})
 
 add_executable(git_contributions_stats main.cpp Repository.h Commit.h utils.h)
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT output)
+if(ipo_supported)
+    set_property(TARGET git_contributions_stats PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(WARNING "IPO is not supported: ${output}")
+endif()
+
 target_link_libraries(git_contributions_stats ${GIT2_LIBRARY})
