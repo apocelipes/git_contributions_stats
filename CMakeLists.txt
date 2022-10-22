@@ -1,10 +1,22 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.23)
 project(git_contributions_stats)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
     add_compile_options(-Wall -Wextra)
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
+    if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "15.0.0" )
+        add_compile_definitions(HAS_CLANG_SOURCE_LOCATION)
+    endif()
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
+    if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "11.1.0" )
+        add_compile_definitions(HAS_GCC)
+    endif()
 endif()
 
 find_path(GIT2_INCLUDE_PATH NAMES git2.h

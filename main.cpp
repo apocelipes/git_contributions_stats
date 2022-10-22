@@ -56,7 +56,7 @@ int main(int argc, const char *argv[]) {
     git_libgit2_shutdown();
 #ifdef MEASURE_TIME
     auto now = std::chrono::system_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(now-old_now) << "\n";
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(now-old_now).count() << "ms\n";
 #endif
     return 0;
 }
