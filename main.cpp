@@ -16,6 +16,14 @@
 #endif
 
 int main(int argc, const char *argv[]) {
+    if (argc < 3) {
+        std::cerr << "error: no enough arguments\n";
+        std::exit(1);
+    }
+    if (!std::filesystem::exists(argv[1])) {
+        std::cerr << "error: " << argv[1] << " does not exists\n";
+        std::exit(1);
+    }
     git_libgit2_init();
 #ifdef MEASURE_TIME
     auto old_now = std::chrono::system_clock::now();
