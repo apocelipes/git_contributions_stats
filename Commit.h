@@ -2,72 +2,63 @@
 #define GIT_STATS_COMMIT_H
 
 #include <iostream>
+#include <memory>
 
 #include <git2.h>
 
 #include "utils.h"
 
 class Commit {
+    struct commit_deleter {
+        void operator()(git_commit *c) noexcept {
+            git_commit_free(c);
+        }
+    };
+
+    using commit_ptr = std::unique_ptr<git_commit, commit_deleter>;
 public:
-    explicit Commit(git_commit *c): commit{c} {}
-    Commit(const Commit& c) = delete;
-    Commit(Commit &&c) noexcept {
-        git_commit_free(commit);
-        commit = c.commit;
-        c.commit = nullptr;
-    }
-
-    Commit& operator=(Commit&& c) noexcept {
-        git_commit_free(commit);
-        commit = c.commit;
-        c.commit = nullptr;
-        return *this;
-    }
-
-    ~Commit() noexcept {
-        git_commit_free(commit);
-    }
+    explicit Commit(git_commit *c): commit{c, commit_deleter{}} {}
 
     [[nodiscard]] std::string get_message() const {
-        return {git_commit_message(commit)};
+        return {git_commit_message(commit.get())};
     }
 
     [[nodiscard]] std::string get_author() const {
-        auto sig = git_commit_author(commit);
+        auto sig = git_commit_author(commit.get());
         return {sig->name};
     }
 
     [[nodiscard]] std::string get_email() const {
-        auto sig = git_commit_author(commit);
+        auto sig = git_commit_author(commit.get());
         return {sig->email};
     }
 
-    [[nodiscard]] unsigned int get_parent_count() const {
-        return git_commit_parentcount(commit);
+    [[nodiscard]] int get_parent_count() const {
+        return static_cast<int>(git_commit_parentcount(commit.get()));
     }
 
     [[nodiscard]] Commit get_parent(int index) const {
         git_commit *parent = nullptr;
-        int err = git_commit_parent(&parent, commit, index);
+        int err = git_commit_parent(&parent, commit.get(), index);
         check_error(err);
         return Commit(parent);
     }
 
     [[nodiscard]] git_tree *get_tree() const {
         git_tree *tree = nullptr;
-        int err = git_commit_tree(&tree, commit);
+        int err = git_commit_tree(&tree, commit.get());
         check_error(err);
         return tree;
     }
 
     bool operator==(const Commit &c) const {
-        auto left_id = git_commit_tree_id(commit);
-        auto right_id = git_commit_tree_id(c.commit);
+        auto left_id = git_commit_tree_id(commit.get());
+        auto right_id = git_commit_tree_id(c.commit.get());
         return git_oid_equal(left_id, right_id);
     }
 
     [[nodiscard]] bool after_date(const int64_t start) const {
-        git_time_t t = git_commit_time(commit);
+        git_time_t t = git_commit_time(commit.get());
         return t >= static_cast<git_time_t>(start);
     }
 
@@ -82,7 +73,7 @@ public:
     }
 
 private:
-    git_commit *commit = nullptr;
+    commit_ptr commit;
 };
 
 #endif //GIT_STATS_COMMIT_H

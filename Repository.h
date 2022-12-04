@@ -57,7 +57,7 @@ public:
 
     std::tuple<size_t, size_t> calc_all_parent_diff(const std::string &email, const Commit &commit) {
         size_t ret_add = 0, ret_del = 0;
-        for (unsigned int i = 0; i < commit.get_parent_count(); ++i) {
+        for (int i = 0; i < commit.get_parent_count(); ++i) {
             auto parent = commit.get_parent(i);
             if (!parent.match_email(email)) {
                 continue;

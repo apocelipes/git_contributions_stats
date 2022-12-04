@@ -48,13 +48,13 @@ int main(int argc, const char *argv[]) {
             continue;
         }
         sema.acquire();
-        jobs.emplace_back(std::thread([argv, start_t, p = p.path(), &all_del, &all_add, &sema]{
+        jobs.emplace_back([argv, start_t, p = p.path(), &all_del, &all_add, &sema]{
             auto repo = Repository(p);
             auto [del, add] = repo.calc_author_contributions(argv[2], static_cast<int64_t>(start_t));
             all_add += add;
             all_del += del;
             sema.release();
-        }));
+        });
     }
     for (auto &t : jobs) {
         t.join();
